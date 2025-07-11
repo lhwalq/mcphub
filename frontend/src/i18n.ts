@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import translations
-import enTranslation from './locales/en.json';
+// import enTranslation from './locales/en.json';
 import zhTranslation from './locales/zh.json';
 
 i18n
@@ -14,14 +14,14 @@ i18n
   // Initialize i18next
   .init({
     resources: {
-      en: {
-        translation: enTranslation
-      },
       zh: {
         translation: zhTranslation
-      }
+      },
+      // en: {
+      //   translation: enTranslation
+      // }
     },
-    fallbackLng: 'en',
+    fallbackLng: 'zh',
     debug: process.env.NODE_ENV === 'development',
     
     // Common namespace used for all translations

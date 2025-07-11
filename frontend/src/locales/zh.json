@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "MCP Hub 控制面板",
+    "title": "DeepParser MCP Hub",
     "error": "错误",
     "closeButton": "关闭",
     "noServers": "没有可用的 MCP 服务器",

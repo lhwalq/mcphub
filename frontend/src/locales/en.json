@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "MCP Hub Dashboard",
+    "title": "DeepParser MCP Hub",
     "error": "Error",
     "closeButton": "Close",
     "noServers": "No MCP servers available",

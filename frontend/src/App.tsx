@@ -6,12 +6,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import MainLayout from './layouts/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/Dashboard';
 import ServersPage from './pages/ServersPage';
-import GroupsPage from './pages/GroupsPage';
-import SettingsPage from './pages/SettingsPage';
-import MarketPage from './pages/MarketPage';
-import LogsPage from './pages/LogsPage';
 import { getBasePath } from './utils/runtime';
 
 function App() {
@@ -28,13 +23,14 @@ function App() {
               {/* 受保护的路由，使用 MainLayout 作为布局容器 */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<MainLayout />}>
-                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/" element={<ServersPage />} />
+                  {/* <Route path="/" element={<DashboardPage />} />
                   <Route path="/servers" element={<ServersPage />} />
                   <Route path="/groups" element={<GroupsPage />} />
                   <Route path="/market" element={<MarketPage />} />
                   <Route path="/market/:serverName" element={<MarketPage />} />
                   <Route path="/logs" element={<LogsPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/settings" element={<SettingsPage />} /> */}
                 </Route>
               </Route>
 
