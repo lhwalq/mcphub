@@ -5,6 +5,7 @@ import ServerCard from '@/components/ServerCard';
 import AddServerForm from '@/components/AddServerForm';
 import EditServerForm from '@/components/EditServerForm';
 import { useServerData } from '@/hooks/useServerData';
+import ToolCard from '@/components/ui/ToolCard';
 
 const ServersPage: React.FC = () => {
   const { t } = useTranslation();
@@ -21,6 +22,8 @@ const ServersPage: React.FC = () => {
   } = useServerData();
   const [editingServer, setEditingServer] = useState<Server | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleEditClick = async (server: Server) => {
     const fullServerData = await handleServerEdit(server);
@@ -45,8 +48,33 @@ const ServersPage: React.FC = () => {
     }
   };
 
+  const handleCardClick = (server: Server) => {
+    setSelectedServer(server);
+    setIsDrawerOpen(true);
+  };
+
+  const handleToolToggle = async (toolName: string, enabled: boolean) => {
+    if (!selectedServer) return;
+    
+    try {
+      const { toggleTool } = await import('@/services/toolService');
+      const result = await toggleTool(selectedServer.name, toolName, enabled);
+      
+      if (result.success) {
+        triggerRefresh();
+        // Update selected server data
+        const updatedServer = servers.find(s => s.name === selectedServer.name);
+        if (updatedServer) {
+          setSelectedServer(updatedServer);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling tool:', error);
+    }
+  };
+
   return (
-    <div>
+    <div className="relative">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-[28px] font-bold text-[#3D3D3D]">{t('pages.servers.title')}</h1>
         <div className="flex gap-2">
@@ -106,7 +134,7 @@ const ServersPage: React.FC = () => {
           <p className="text-gray-600">{t('app.noServers')}</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {servers.map((server, index) => (
             <ServerCard
               key={index}
@@ -115,6 +143,7 @@ const ServersPage: React.FC = () => {
               onEdit={handleEditClick}
               onToggle={handleServerToggle}
               onRefresh={triggerRefresh}
+              onClick={handleCardClick}
             />
           ))}
         </div>
@@ -126,6 +155,60 @@ const ServersPage: React.FC = () => {
           onEdit={handleEditComplete}
           onCancel={() => setEditingServer(null)}
         />
+      )}
+
+      {/* Tools Drawer */}
+      {isDrawerOpen && selectedServer && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50" 
+            onClick={() => setIsDrawerOpen(false)}
+          />
+          <div className="absolute right-0 top-0 h-full w-96 bg-white shadow-xl transform transition-transform duration-300 ease-in-out">
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">{selectedServer.name}</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedServer.tools?.length || 0} {t('server.tools')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Tools List */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {selectedServer.tools && selectedServer.tools.length > 0 ? (
+                  <div className="space-y-4">
+                    {selectedServer.tools.map((tool, index) => (
+                      <ToolCard 
+                        key={index} 
+                        server={selectedServer.name} 
+                        tool={tool} 
+                        onToggle={handleToolToggle} 
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 mt-8">
+                    <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                    <p>{t('server.noTools')}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

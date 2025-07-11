@@ -134,6 +134,7 @@ export interface Server {
   tools?: Tool[];
   config?: ServerConfig;
   enabled?: boolean;
+  description?: string; // 服务器描述
 }
 
 // Group types

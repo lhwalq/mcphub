@@ -110,6 +110,7 @@ export interface ServerConfig {
   keepAliveInterval?: number; // Keep-alive ping interval in milliseconds (default: 60000ms for SSE servers)
   tools?: Record<string, { enabled: boolean; description?: string }>; // Tool-specific configurations with enable/disable state and custom descriptions
   options?: Partial<Pick<RequestOptions, 'timeout' | 'resetTimeoutOnProgress' | 'maxTotalTimeout'>>; // MCP request options configuration
+  description?: string; // 服务器描述
   // OpenAPI specific configuration
   openapi?: {
     url?: string; // OpenAPI specification URL
@@ -164,6 +165,7 @@ export interface ServerInfo {
   createTime: number; // Timestamp of when the server was created
   enabled?: boolean; // Flag to indicate if the server is enabled
   keepAliveIntervalId?: NodeJS.Timeout; // Timer ID for keep-alive ping interval
+  description?: string; // 服务器描述
 }
 
 // Details about a tool available on the server

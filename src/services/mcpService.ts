@@ -501,6 +501,7 @@ export const getServersInfo = (): Omit<ServerInfo, 'client' | 'transport'>[] => 
       tools: toolsWithEnabled,
       createTime,
       enabled,
+      description: serverConfig?.description || '', // 从配置中读取 description
     };
   });
   infos.sort((a, b) => {

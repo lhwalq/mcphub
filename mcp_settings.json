@@ -2,6 +2,7 @@
   "mcpServers": {
     "amap": {
       "command": "npx",
+      "description": "高德地图 MCP 服务",
       "args": [
         "-y",
         "@amap/amap-maps-mcp-server"
@@ -14,10 +15,11 @@
           "enabled": true
         }
       },
-      "enabled": true
+      "enabled": false
     },
     "playwright": {
       "command": "npx",
+      "description": "Playwright MCP 服务",
       "args": [
         "@playwright/mcp@latest",
         "--headless"
@@ -26,6 +28,7 @@
     },
     "fetch": {
       "command": "uvx",
+      "description": "Fetch MCP 服务",
       "args": [
         "mcp-server-fetch"
       ],
@@ -33,6 +36,7 @@
     },
     "slack": {
       "command": "npx",
+      "description": "Slack MCP 服务",
       "args": [
         "-y",
         "@modelcontextprotocol/server-slack"
@@ -46,6 +50,7 @@
     "text": {
       "type": "stdio",
       "command": "npx",
+      "description": "Text MCP 服务",
       "args": [
         "@playwright/mcp@latest",
         "--headless"
