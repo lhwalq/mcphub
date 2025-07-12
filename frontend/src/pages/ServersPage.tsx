@@ -82,7 +82,7 @@ const ServersPage: React.FC = () => {
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className={`px-4 py-2 bg-[#302DF0] text-white rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 ${isRefreshing ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`px-4 py-2 text-sm bg-[#302DF0] text-white rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 ${isRefreshing ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {isRefreshing ? (
               <svg className="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
