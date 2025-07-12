@@ -24,6 +24,7 @@ const ServersPage: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDrawerAnimating, setIsDrawerAnimating] = useState(false);
 
   const handleEditClick = async (server: Server) => {
     const fullServerData = await handleServerEdit(server);
@@ -47,10 +48,26 @@ const ServersPage: React.FC = () => {
       setIsRefreshing(false);
     }
   };
-
+  
+  // 修改 handleCardClick 函数
   const handleCardClick = (server: Server) => {
     setSelectedServer(server);
     setIsDrawerOpen(true);
+    // 延迟启动动画，确保DOM已更新
+    requestAnimationFrame(() => {
+      setIsDrawerAnimating(true);
+    });
+  };
+  
+  // 添加关闭抽屉的函数
+  const handleCloseDrawer = () => {
+    // 先执行关闭动画
+    setIsDrawerAnimating(false);
+    // 等待动画完成后再隐藏抽屉
+    setTimeout(() => {
+      setIsDrawerOpen(false);
+      setSelectedServer(null);
+    }, 300); // 与动画持续时间相同
   };
 
   const handleToolToggle = async (toolName: string, enabled: boolean) => {
@@ -71,6 +88,23 @@ const ServersPage: React.FC = () => {
     } catch (error) {
       console.error('Error toggling tool:', error);
     }
+  };
+
+  const handleToolDescriptionUpdate = (toolName: string, description: string) => {
+    if (!selectedServer) return;
+    
+    // Update the tool description in the selected server
+    const updatedTools = selectedServer.tools?.map(tool => 
+      tool.name === toolName ? { ...tool, description } : tool
+    );
+    
+    setSelectedServer({
+      ...selectedServer,
+      tools: updatedTools
+    });
+    
+    // Also trigger a refresh to update the main servers list
+    triggerRefresh();
   };
 
   return (
@@ -169,14 +203,16 @@ const ServersPage: React.FC = () => {
         />
       )}
 
-      {/* Tools Drawer */}
+      {/* Tools Drawer - 带有滑入滑出动画 */}
       {isDrawerOpen && selectedServer && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="fixed inset-0 z-40 bg-black/30 overflow-hidden">
           <div 
-            className="absolute inset-0 bg-black bg-opacity-50" 
-            onClick={() => setIsDrawerOpen(false)}
+            className="absolute inset-0" 
+            onClick={handleCloseDrawer}
           />
-          <div className="absolute right-0 top-0 h-full w-96 bg-white shadow-xl transform transition-transform duration-300 ease-in-out">
+          <div className={`absolute right-0 top-0 h-full w-2/3 bg-white shadow-xl rounded-l-lg transform transition-transform duration-300 ease-in-out ${
+            isDrawerAnimating ? 'translate-x-0' : 'translate-x-full'
+          }`}>
             <div className="flex flex-col h-full">
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -187,7 +223,7 @@ const ServersPage: React.FC = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => setIsDrawerOpen(false)}
+                  onClick={handleCloseDrawer}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,7 +241,8 @@ const ServersPage: React.FC = () => {
                         key={index} 
                         server={selectedServer.name} 
                         tool={tool} 
-                        onToggle={handleToolToggle} 
+                        onToggle={handleToolToggle}
+                        onDescriptionUpdate={handleToolDescriptionUpdate}
                       />
                     ))}
                   </div>

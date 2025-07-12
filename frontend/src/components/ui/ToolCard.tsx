@@ -25,7 +25,14 @@ const ToolCard = ({ tool, server, onToggle, onDescriptionUpdate }: ToolCardProps
   const descriptionInputRef = useRef<HTMLInputElement>(null)
   const descriptionTextRef = useRef<HTMLSpanElement>(null)
   const [textWidth, setTextWidth] = useState<number>(0)
-
+  
+  // 简化切换函数
+  const toggleRunForm = () => {
+    setShowRunForm(!showRunForm)
+    setIsExpanded(true)
+    setResult(null)
+  }
+  
   // Focus the input when editing mode is activated
   useEffect(() => {
     if (isEditingDescription && descriptionInputRef.current) {
@@ -106,8 +113,6 @@ const ToolCard = ({ tool, server, onToggle, onDescriptionUpdate }: ToolCardProps
       }, server)
 
       setResult(result)
-      // Clear form data on successful submission
-      // clearStoredFormData()
     } catch (error) {
       setResult({
         success: false,
@@ -120,7 +125,6 @@ const ToolCard = ({ tool, server, onToggle, onDescriptionUpdate }: ToolCardProps
 
   const handleCancelRun = () => {
     setShowRunForm(false)
-    // Clear form data when cancelled
     clearStoredFormData()
     setResult(null)
   }
@@ -195,8 +199,7 @@ const ToolCard = ({ tool, server, onToggle, onDescriptionUpdate }: ToolCardProps
           <button
             onClick={(e) => {
               e.stopPropagation()
-              setIsExpanded(true) // Ensure card is expanded when showing run form
-              setShowRunForm(true)
+              toggleRunForm()
             }}
             className="flex items-center space-x-1 px-3 py-1 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors btn-primary"
             disabled={isRunning || !tool.enabled}
@@ -216,7 +219,7 @@ const ToolCard = ({ tool, server, onToggle, onDescriptionUpdate }: ToolCardProps
 
       {isExpanded && (
         <div className="mt-4 space-y-4">
-          {/* Schema Display */}
+          {/* Schema Display - 只在不显示运行表单时显示 */}
           {!showRunForm && (
             <div className="bg-gray-50 rounded p-3 border border-gray-300">
               <h4 className="text-sm font-medium text-gray-900 mb-2">{t('tool.inputSchema')}</h4>
@@ -225,28 +228,27 @@ const ToolCard = ({ tool, server, onToggle, onDescriptionUpdate }: ToolCardProps
               </pre>
             </div>
           )}
-
-          {/* Run Form */}
+          
+          {/* Run Form - 在卡片内部显示 */}
           {showRunForm && (
-            <div className="border border-gray-300 rounded-lg p-4">
+            <div className="bg-gray-50 rounded p-4 border border-gray-300">
               <DynamicForm
                 schema={tool.inputSchema || { type: 'object' }}
                 onSubmit={handleRunTool}
                 onCancel={handleCancelRun}
                 loading={isRunning}
                 storageKey={getStorageKey()}
-                title={t('tool.runToolWithName', { name: tool.name.replace(server + '-', '') })}
+                title=""
               />
-              {/* Tool Result */}
-              {result && (
-                <div className="mt-4">
-                  <ToolResult result={result} onClose={handleCloseResult} />
-                </div>
-              )}
             </div>
           )}
-
-
+          
+          {/* Tool Result */}
+          {result && (
+            <div className="mt-4">
+              <ToolResult result={result} onClose={handleCloseResult} />
+            </div>
+          )}
         </div>
       )}
     </div>
