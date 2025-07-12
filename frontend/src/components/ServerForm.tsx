@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Server, EnvVar, ServerFormData } from '@/types'
 
@@ -88,8 +88,10 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
   )
 
   const [isRequestOptionsExpanded, setIsRequestOptionsExpanded] = useState<boolean>(false)
+  const [showSecurityMenu, setShowSecurityMenu] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const isEdit = !!initialData
+  const securityMenuRef = useRef<HTMLDivElement>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -149,6 +151,20 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
       }
     }))
   }
+
+  // Handle click outside to close security menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (securityMenuRef.current && !securityMenuRef.current.contains(event.target as Node)) {
+        setShowSecurityMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   // Submit handler for server configuration
   const handleSubmit = async (e: React.FormEvent) => {
@@ -261,172 +277,158 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
   }
 
   return (
-    <div className="p-6 w-full max-w-xl max-h-screen overflow-y-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">{modalTitle}</h2>
-        <button onClick={onCancel} className="text-gray-500 hover:text-gray-700">
-          ✕
-        </button>
+    <div className="flex flex-col h-screen">
+      {/* 固定标题 */}
+      <div className="bg-white p-8 flex-shrink-0">
+        <h2 className="text-xl font-semibold text-[#1E293B]">{modalTitle}</h2>
       </div>
-
-      {(error || formError) && (
-        <div className="bg-red-50 text-red-700 p-3 rounded mb-4">
-          {formError || error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-            {t('server.name')}
-          </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline form-input"
-            placeholder="e.g.: time-mcp"
-            required
-            disabled={isEdit}
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">{t('server.type')}</label>
-          <div className="flex space-x-4">
-            <div>
-              <input
-                type="radio"
-                id="command"
-                name="serverType"
-                value="command"
-                checked={serverType === 'stdio'}
-                onChange={() => updateServerType('stdio')}
-                className="mr-1"
-              />
-              <label htmlFor="command">STDIO</label>
-            </div>
-            <div>
-              <input
-                type="radio"
-                id="url"
-                name="serverType"
-                value="url"
-                checked={serverType === 'sse'}
-                onChange={() => updateServerType('sse')}
-                className="mr-1"
-              />
-              <label htmlFor="url">SSE</label>
-            </div>
-            <div>
-              <input
-                type="radio"
-                id="streamable-http"
-                name="serverType"
-                value="streamable-http"
-                checked={serverType === 'streamable-http'}
-                onChange={() => updateServerType('streamable-http')}
-                className="mr-1"
-              />
-              <label htmlFor="streamable-http">Streamable HTTP</label>
-            </div>
-            <div>
-              <input
-                type="radio"
-                id="openapi"
-                name="serverType"
-                value="openapi"
-                checked={serverType === 'openapi'}
-                onChange={() => updateServerType('openapi')}
-                className="mr-1"
-              />
-              <label htmlFor="openapi">OpenAPI</label>
+    
+      {/* 可滚动的表单内容 */}
+      <div className="flex-1 overflow-y-auto px-8">
+        {(error || formError) && (
+          <div className="bg-red-50 text-red-700 p-3 rounded mb-4">
+            {formError || error}
+          </div>
+        )}
+    
+        <form onSubmit={handleSubmit}>
+          {/* 服务器类型 - 独立按钮样式 */}
+          <div className="mb-6">
+            <label className="block text-[#364052] text-sm mb-6">{t('server.type')}</label>
+            <div className="flex gap-2">
+              {[
+                { value: 'stdio', label: 'STDIO' },
+                { value: 'sse', label: 'SSE' },
+                { value: 'streamable-http', label: 'Streamable HTTP' },
+                { value: 'openapi', label: 'OpenAPI' }
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => updateServerType(option.value as any)}
+                  className={`px-4 py-2 text-sm rounded-lg transition-all duration-200 ${
+                    serverType === option.value
+                      ? 'bg-[#EEF2FF] text-[#302DF0] '
+                      : 'bg-white text-[#676F83] hover:bg-[#EEF2FF]'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
           </div>
-        </div>
-
-        {serverType === 'openapi' ? (
-          <>
-            {/* Input Mode Selection */}
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                {t('server.openapi.inputMode')}
+    
+          {/* 第一行：服务器名称和介绍 */}
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div>
+              <label className="block text-[#364052] text-sm font-bold mb-3" htmlFor="name">
+                {t('server.name')}
               </label>
-              <div className="flex space-x-4">
-                <div>
-                  <input
-                    type="radio"
-                    id="input-mode-url"
-                    name="inputMode"
-                    value="url"
-                    checked={formData.openapi?.inputMode === 'url'}
-                    onChange={() => setFormData(prev => ({
+              <input
+                type="text"
+                name="name"
+                id="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="appearance-none border h-12 rounded w-full py-2 px-3 text-[#364052] form-input"
+                placeholder="e.g.: time-mcp"
+                required
+                disabled={isEdit}
+              />
+            </div>
+            <div>
+              <label className="block text-[#364052] text-sm font-bold mb-3" htmlFor="description">
+                {t('server.introduction')}
+              </label>
+              <input
+                type="text"
+                name="description"
+                id="description"
+                className="appearance-none border rounded h-12 w-full py-2 px-3 text-[#364052] form-input"
+                placeholder="e.g.: time mcp introduction"
+              />
+            </div>
+          </div>
+    
+          {/* 根据服务器类型显示不同的表单内容 */}
+          {serverType === 'openapi' ? (
+            <>
+              {/* Input Mode Selection */}
+              <div className="mb-8">
+                <label className="block text-[#364052] text-sm font-bold mb-3">
+                  {t('server.openapi.inputMode')}
+                </label>
+                <div className="flex space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({
                       ...prev,
                       openapi: { ...prev.openapi!, inputMode: 'url' }
                     }))}
-                    className="mr-1"
-                  />
-                  <label htmlFor="input-mode-url">{t('server.openapi.inputModeUrl')}</label>
-                </div>
-                <div>
-                  <input
-                    type="radio"
-                    id="input-mode-schema"
-                    name="inputMode"
-                    value="schema"
-                    checked={formData.openapi?.inputMode === 'schema'}
-                    onChange={() => setFormData(prev => ({
+                    className={`px-4 py-2 text-sm rounded-lg transition-all duration-200 ${
+                      formData.openapi?.inputMode === 'url'
+                      ? 'bg-[#EEF2FF] text-[#302DF0] '
+                      : 'bg-white text-[#676F83] hover:bg-[#EEF2FF]'
+                    }`}
+                  >
+                    {t('server.openapi.inputModeUrl')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({
                       ...prev,
                       openapi: { ...prev.openapi!, inputMode: 'schema' }
                     }))}
-                    className="mr-1"
-                  />
-                  <label htmlFor="input-mode-schema">{t('server.openapi.inputModeSchema')}</label>
+                    className={`px-4 py-2 text-sm rounded-lg transition-all duration-200 ${
+                      formData.openapi?.inputMode === 'schema'
+                      ? 'bg-[#EEF2FF] text-[#302DF0] '
+                      : 'bg-white text-[#676F83] hover:bg-[#EEF2FF]'
+                    }`}
+                  >
+                    {t('server.openapi.inputModeSchema')}
+                  </button>
                 </div>
               </div>
-            </div>
-
-            {/* URL Input */}
-            {formData.openapi?.inputMode === 'url' && (
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="openapi-url">
-                  {t('server.openapi.specUrl')}
-                </label>
-                <input
-                  type="url"
-                  name="openapi-url"
-                  id="openapi-url"
-                  value={formData.openapi?.url || ''}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    openapi: { ...prev.openapi!, url: e.target.value }
-                  }))}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline form-input"
-                  placeholder="e.g.: https://api.example.com/openapi.json"
-                  required={serverType === 'openapi' && formData.openapi?.inputMode === 'url'}
-                />
-              </div>
-            )}
-
-            {/* Schema Input */}
-            {formData.openapi?.inputMode === 'schema' && (
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="openapi-schema">
-                  {t('server.openapi.schema')}
-                </label>
-                <textarea
-                  name="openapi-schema"
-                  id="openapi-schema"
-                  rows={10}
-                  value={formData.openapi?.schema || ''}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    openapi: { ...prev.openapi!, schema: e.target.value }
-                  }))}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline font-mono text-sm"
-                  placeholder={`{
+    
+              {/* URL Input */}
+              {formData.openapi?.inputMode === 'url' && (
+                <div className="mb-8">
+                  <label className="block text-[#364052] text-sm font-bold mb-3" htmlFor="openapi-url">
+                    {t('server.openapi.specUrl')}
+                  </label>
+                  <input
+                    type="url"
+                    name="openapi-url"
+                    id="openapi-url"
+                    value={formData.openapi?.url || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      openapi: { ...prev.openapi!, url: e.target.value }
+                    }))}
+                    className="appearance-none border h-12 rounded w-full py-2 px-3 text-[#364052] form-input"
+                    placeholder="e.g.: https://api.example.com/openapi.json"
+                    required={serverType === 'openapi' && formData.openapi?.inputMode === 'url'}
+                  />
+                </div>
+              )}
+    
+              {/* Schema Input */}
+              {formData.openapi?.inputMode === 'schema' && (
+                <div className="mb-8">
+                  <label className="block text-[#364052] text-sm font-bold mb-3" htmlFor="openapi-schema">
+                    {t('server.openapi.schema')}
+                  </label>
+                  <textarea
+                    name="openapi-schema"
+                    id="openapi-schema"
+                    rows={10}
+                    value={formData.openapi?.schema || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      openapi: { ...prev.openapi!, schema: e.target.value }
+                    }))}
+                    className="appearance-none border rounded w-full py-2 px-3 text-[#364052] font-mono text-sm form-input"
+                    placeholder={`{
   "openapi": "3.1.0",
   "info": {
     "title": "API",
@@ -441,450 +443,356 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
     ...
   }
 }`}
-                  required={serverType === 'openapi' && formData.openapi?.inputMode === 'schema'}
-                />
-                <p className="text-xs text-gray-500 mt-1">{t('server.openapi.schemaHelp')}</p>
-              </div>
-            )}
-
-            {/* Security Configuration */}
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                {t('server.openapi.security')}
-              </label>
-              <select
-                value={formData.openapi?.securityType || 'none'}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  openapi: {
-                    ...prev.openapi,
-                    securityType: e.target.value as any,
-                    url: prev.openapi?.url || ''
-                  }
-                }))}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline form-input"
-              >
-                <option value="none">{t('server.openapi.securityNone')}</option>
-                <option value="apiKey">{t('server.openapi.securityApiKey')}</option>
-                <option value="http">{t('server.openapi.securityHttp')}</option>
-                <option value="oauth2">{t('server.openapi.securityOAuth2')}</option>
-                <option value="openIdConnect">{t('server.openapi.securityOpenIdConnect')}</option>
-              </select>
-            </div>
-
-            {/* API Key Configuration */}
-            {formData.openapi?.securityType === 'apiKey' && (
-              <div className="mb-4 p-4 border border-gray-200 rounded bg-gray-50">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">{t('server.openapi.apiKeyConfig')}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">{t('server.openapi.apiKeyName')}</label>
-                    <input
-                      type="text"
-                      value={formData.openapi?.apiKeyName || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        openapi: { ...prev.openapi, apiKeyName: e.target.value, url: prev.openapi?.url || '' }
-                      }))}
-                      className="w-full border rounded px-2 py-1 text-sm form-input focus:outline-none"
-                      placeholder="Authorization"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">{t('server.openapi.apiKeyIn')}</label>
-                    <select
-                      value={formData.openapi?.apiKeyIn || 'header'}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        openapi: { ...prev.openapi, apiKeyIn: e.target.value as any, url: prev.openapi?.url || '' }
-                      }))}
-                      className="w-full border rounded px-2 py-1 text-sm focus:outline-none form-input"
-                    >
-                      <option value="header">Header</option>
-                      <option value="query">Query</option>
-                      <option value="cookie">Cookie</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">{t('server.openapi.apiKeyValue')}</label>
-                    <input
-                      type="password"
-                      value={formData.openapi?.apiKeyValue || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        openapi: { ...prev.openapi, apiKeyValue: e.target.value, url: prev.openapi?.url || '' }
-                      }))}
-                      className="w-full border rounded px-2 py-1 text-sm focus:outline-none form-input"
-                      placeholder="your-api-key"
-                    />
-                  </div>
+                    required={serverType === 'openapi' && formData.openapi?.inputMode === 'schema'}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">{t('server.openapi.schemaHelp')}</p>
                 </div>
-              </div>
-            )}
-
-            {/* HTTP Authentication Configuration */}
-            {formData.openapi?.securityType === 'http' && (
-              <div className="mb-4 p-4 border border-gray-200 rounded bg-gray-50">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">{t('server.openapi.httpAuthConfig')}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">{t('server.openapi.httpScheme')}</label>
-                    <select
-                      value={formData.openapi?.httpScheme || 'bearer'}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        openapi: { ...prev.openapi, httpScheme: e.target.value as any, url: prev.openapi?.url || '' }
-                      }))}
-                      className="w-full border rounded px-2 py-1 text-sm focus:outline-none form-input"
-                    >
-                      <option value="basic">Basic</option>
-                      <option value="bearer">Bearer</option>
-                      <option value="digest">Digest</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">{t('server.openapi.httpCredentials')}</label>
-                    <input
-                      type="password"
-                      value={formData.openapi?.httpCredentials || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        openapi: { ...prev.openapi, httpCredentials: e.target.value, url: prev.openapi?.url || '' }
-                      }))}
-                      className="w-full border rounded px-2 py-1 text-sm focus:outline-none form-input"
-                      placeholder={formData.openapi?.httpScheme === 'basic' ? 'base64-encoded-credentials' : 'bearer-token'}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* OAuth2 Configuration */}
-            {formData.openapi?.securityType === 'oauth2' && (
-              <div className="mb-4 p-4 border border-gray-200 rounded bg-gray-50">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">{t('server.openapi.oauth2Config')}</h4>
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">{t('server.openapi.oauth2Token')}</label>
-                    <input
-                      type="password"
-                      value={formData.openapi?.oauth2Token || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        openapi: { ...prev.openapi, oauth2Token: e.target.value, url: prev.openapi?.url || '' }
-                      }))}
-                      className="w-full border rounded px-2 py-1 text-sm focus:outline-none form-input"
-                      placeholder="access-token"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* OpenID Connect Configuration */}
-            {formData.openapi?.securityType === 'openIdConnect' && (
-              <div className="mb-4 p-4 border border-gray-200 rounded bg-gray-50">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">{t('server.openapi.openIdConnectConfig')}</h4>
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">{t('server.openapi.openIdConnectUrl')}</label>
-                    <input
-                      type="url"
-                      value={formData.openapi?.openIdConnectUrl || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        openapi: { ...prev.openapi, openIdConnectUrl: e.target.value, url: prev.openapi?.url || '' }
-                      }))}
-                      className="w-full border rounded px-2 py-1 text-sm focus:outline-none form-input"
-                      placeholder="https://example.com/.well-known/openid_configuration"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">{t('server.openapi.openIdConnectToken')}</label>
-                    <input
-                      type="password"
-                      value={formData.openapi?.openIdConnectToken || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        openapi: { ...prev.openapi, openIdConnectToken: e.target.value, url: prev.openapi?.url || '' }
-                      }))}
-                      className="w-full border rounded px-2 py-1 text-sm focus:outline-none form-input"
-                      placeholder="id-token"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-gray-700 text-sm font-bold">
-                  {t('server.headers')}
+              )}
+    
+              {/* Security Configuration */}
+              <div className="mb-8">
+                <label className="block text-[#364052] text-sm font-bold mb-3">
+                  {t('server.openapi.security')}
                 </label>
-                <button
-                  type="button"
-                  onClick={addHeaderVar}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded text-sm flex items-center btn-primary"
-                >
-                  + {t('server.add')}
-                </button>
-              </div>
-              {headerVars.map((headerVar, index) => (
-                <div key={index} className="flex items-center mb-2">
-                  <div className="flex items-center space-x-2 flex-grow">
-                    <input
-                      type="text"
-                      value={headerVar.key}
-                      onChange={(e) => handleHeaderVarChange(index, 'key', e.target.value)}
-                      className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-1/2 form-input"
-                      placeholder="Authorization"
-                    />
-                    <span className="flex items-center">:</span>
-                    <input
-                      type="text"
-                      value={headerVar.value}
-                      onChange={(e) => handleHeaderVarChange(index, 'value', e.target.value)}
-                      className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-1/2 form-input"
-                      placeholder="Bearer token..."
-                    />
-                  </div>
+                <div className="relative" ref={securityMenuRef}>
                   <button
                     type="button"
-                    onClick={() => removeHeaderVar(index)}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded text-sm flex items-center justify-center min-w-[56px] ml-2 btn-danger"
+                    onClick={() => setShowSecurityMenu(!showSecurityMenu)}
+                    className="w-full h-12 px-3 py-2 text-left bg-white border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:bg-gray-50 transition-colors duration-200 flex items-center justify-between"
                   >
-                    - {t('server.remove')}
+                    <span className="text-[#364052]">
+                      {formData.openapi?.securityType === 'none' && t('server.openapi.securityNone')}
+                      {formData.openapi?.securityType === 'apiKey' && t('server.openapi.securityApiKey')}
+                      {formData.openapi?.securityType === 'http' && t('server.openapi.securityHttp')}
+                      {formData.openapi?.securityType === 'oauth2' && t('server.openapi.securityOAuth2')}
+                      {formData.openapi?.securityType === 'openIdConnect' && t('server.openapi.securityOpenIdConnect')}
+                    </span>
                   </button>
+                  {showSecurityMenu && (
+                    <div className="absolute right-0 top-full w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-10">
+                      {[
+                        { value: 'none', label: t('server.openapi.securityNone') },
+                        { value: 'apiKey', label: t('server.openapi.securityApiKey') },
+                        { value: 'http', label: t('server.openapi.securityHttp') },
+                        { value: 'oauth2', label: t('server.openapi.securityOAuth2') },
+                        { value: 'openIdConnect', label: t('server.openapi.securityOpenIdConnect') }
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              openapi: {
+                                ...prev.openapi,
+                                securityType: option.value as any,
+                                url: prev.openapi?.url || ''
+                              }
+                            }))
+                            setShowSecurityMenu(false)
+                          }}
+                          className={`block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                            formData.openapi?.securityType === option.value
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'text-gray-700'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </>
-        ) : serverType === 'sse' || serverType === 'streamable-http' ? (
-          <>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="url">
-                {t('server.url')}
-              </label>
-              <input
-                type="url"
-                name="url"
-                id="url"
-                value={formData.url}
-                onChange={handleInputChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline form-input"
-                placeholder={serverType === 'streamable-http' ? "e.g.: http://localhost:3000/mcp" : "e.g.: http://localhost:3000/sse"}
-                required={serverType === 'sse' || serverType === 'streamable-http'}
-              />
-            </div>
-
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-gray-700 text-sm font-bold">
-                  {t('server.headers')}
-                </label>
-                <button
-                  type="button"
-                  onClick={addHeaderVar}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded text-sm flex items-center btn-primary"
-                >
-                  + {t('server.add')}
-                </button>
               </div>
-              {headerVars.map((headerVar, index) => (
-                <div key={index} className="flex items-center mb-2">
-                  <div className="flex items-center space-x-2 flex-grow">
-                    <input
-                      type="text"
-                      value={headerVar.key}
-                      onChange={(e) => handleHeaderVarChange(index, 'key', e.target.value)}
-                      className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-1/2 form-input"
-                      placeholder="Authorization"
-                    />
-                    <span className="flex items-center">:</span>
-                    <input
-                      type="text"
-                      value={headerVar.value}
-                      onChange={(e) => handleHeaderVarChange(index, 'value', e.target.value)}
-                      className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-1/2 form-input"
-                      placeholder="Bearer token..."
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeHeaderVar(index)}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded text-sm flex items-center justify-center min-w-[56px] ml-2 btn-danger"
-                  >
-                    - {t('server.remove')}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="command">
-                {t('server.command')}
-              </label>
-              <input
-                type="text"
-                name="command"
-                id="command"
-                value={formData.command}
-                onChange={handleInputChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline form-input"
-                placeholder="e.g.: npx"
-                required={serverType === 'stdio'}
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="arguments">
-                {t('server.arguments')}
-              </label>
-              <input
-                type="text"
-                name="arguments"
-                id="arguments"
-                value={formData.arguments}
-                onChange={(e) => handleArgsChange(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline form-input"
-                placeholder="e.g.: -y time-mcp"
-                required={serverType === 'stdio'}
-              />
-            </div>
-
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-gray-700 text-sm font-bold">
-                  {t('server.envVars')}
-                </label>
-                <button
-                  type="button"
-                  onClick={addEnvVar}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded text-sm flex items-center btn-primary"
-                >
-                  + {t('server.add')}
-                </button>
-              </div>
-              {envVars.map((envVar, index) => (
-                <div key={index} className="flex items-center mb-2">
-                  <div className="flex items-center space-x-2 flex-grow">
-                    <input
-                      type="text"
-                      value={envVar.key}
-                      onChange={(e) => handleEnvVarChange(index, 'key', e.target.value)}
-                      className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-1/2 form-input"
-                      placeholder={t('server.key')}
-                    />
-                    <span className="flex items-center">:</span>
-                    <input
-                      type="text"
-                      value={envVar.value}
-                      onChange={(e) => handleEnvVarChange(index, 'value', e.target.value)}
-                      className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-1/2 form-input"
-                      placeholder={t('server.value')}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeEnvVar(index)}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded text-sm flex items-center justify-center min-w-[56px] ml-2 btn-danger"
-                  >
-                    - {t('server.remove')}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Request Options Configuration */}
-        {serverType !== 'openapi' && (
-          <div className="mb-4">
-            <div
-              className="flex items-center justify-between cursor-pointer bg-gray-50 hover:bg-gray-100 p-3 rounded border border-gray-200"
-              onClick={() => setIsRequestOptionsExpanded(!isRequestOptionsExpanded)}
-            >
-              <label className="text-gray-700 text-sm font-bold">
-                {t('server.requestOptions')}
-              </label>
-              <span className="text-gray-500 text-sm">
-                {isRequestOptionsExpanded ? '▼' : '▶'}
-              </span>
-            </div>
-
-            {isRequestOptionsExpanded && (
-              <div className="border border-gray-200 rounded-b p-4 bg-gray-50 border-t-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-600 text-sm font-medium mb-1" htmlFor="timeout">
-                      {t('server.timeout')}
-                    </label>
-                    <input
-                      type="number"
-                      id="timeout"
-                      value={formData.options?.timeout || 60000}
-                      onChange={(e) => handleOptionsChange('timeout', parseInt(e.target.value) || 60000)}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline form-input"
-                      placeholder="30000"
-                      min="1000"
-                      max="300000"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">{t('server.timeoutDescription')}</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-600 text-sm font-medium mb-1" htmlFor="maxTotalTimeout">
-                      {t('server.maxTotalTimeout')}
-                    </label>
-                    <input
-                      type="number"
-                      id="maxTotalTimeout"
-                      value={formData.options?.maxTotalTimeout || ''}
-                      onChange={(e) => handleOptionsChange('maxTotalTimeout', e.target.value ? parseInt(e.target.value) : undefined)}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline form-input"
-                      placeholder="Optional"
-                      min="1000"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">{t('server.maxTotalTimeoutDescription')}</p>
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.options?.resetTimeoutOnProgress || false}
-                      onChange={(e) => handleOptionsChange('resetTimeoutOnProgress', e.target.checked)}
-                      className="mr-2"
-                    />
-                    <span className="text-gray-600 text-sm">{t('server.resetTimeoutOnProgress')}</span>
+    
+              {/* HTTP 请求头配置 - 仅对OpenAPI显示 */}
+              <div className="mb-8">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-[#364052] text-sm font-bold">
+                    {t('server.headers')}
                   </label>
-                  <p className="text-xs text-gray-500 mt-1 ml-6">
-                    {t('server.resetTimeoutOnProgressDescription')}
-                  </p>
+                  <button
+                    type="button"
+                    onClick={addHeaderVar}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded text-sm flex items-center btn-primary"
+                  >
+                    + {t('server.add')}
+                  </button>
+                </div>
+                {headerVars.map((headerVar, index) => (
+                  <div key={index} className="flex items-center mb-2">
+                    <div className="flex items-center space-x-2 flex-grow">
+                      <input
+                        type="text"
+                        value={headerVar.key}
+                        onChange={(e) => handleHeaderVarChange(index, 'key', e.target.value)}
+                        className="appearance-none border h-12 rounded py-2 px-3 text-[#364052] w-1/2 form-input"
+                        placeholder="Authorization"
+                      />
+                      <span className="flex items-center text-[#364052]">:</span>
+                      <input
+                        type="text"
+                        value={headerVar.value}
+                        onChange={(e) => handleHeaderVarChange(index, 'value', e.target.value)}
+                        className="appearance-none border h-12 rounded py-2 px-3 text-[#364052] w-1/2 form-input"
+                        placeholder="Bearer token..."
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeHeaderVar(index)}
+                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded text-sm flex items-center justify-center min-w-[56px] ml-2 btn-danger"
+                    >
+                      - {t('server.remove')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : serverType === 'stdio' ? (
+            <>
+              {/* 命令和参数 - 仅对STDIO显示 */}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div>
+                  <label className="block text-[#364052] text-sm font-bold mb-3" htmlFor="command">
+                    {t('server.command')}
+                  </label>
+                  <input
+                    type="text"
+                    name="command"
+                    id="command"
+                    value={formData.command}
+                    onChange={handleInputChange}
+                    className="appearance-none border h-12 rounded w-full py-2 px-3 text-[#364052] form-input"
+                    placeholder="e.g.: npx"
+                    required={serverType === 'stdio'}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#364052] text-sm font-bold mb-3" htmlFor="arguments">
+                    {t('server.arguments')}
+                  </label>
+                  <input
+                    type="text"
+                    name="arguments"
+                    id="arguments"
+                    value={formData.arguments}
+                    onChange={(e) => handleArgsChange(e.target.value)}
+                    className="appearance-none border h-12 rounded w-full py-2 px-3 text-[#364052] form-input"
+                    placeholder="e.g.: -y time-mcp"
+                    required={serverType === 'stdio'}
+                  />
                 </div>
               </div>
-            )}
-          </div>
-        )}
-
-        <div className="flex justify-end mt-6">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded mr-2 btn-secondary"
-          >
-            {t('server.cancel')}
-          </button>
-          <button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded btn-primary"
-          >
-            {isEdit ? t('server.save') : t('server.add')}
-          </button>
-        </div>
-      </form>
+    
+              {/* 环境变量 - 仅对STDIO显示 */}
+              <div className="mb-8">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-[#364052] text-sm font-bold">
+                    {t('server.envVars')}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addEnvVar}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded text-sm flex items-center btn-primary"
+                  >
+                    + {t('server.add')}
+                  </button>
+                </div>
+                {envVars.map((envVar, index) => (
+                  <div key={index} className="flex items-center mb-2">
+                    <div className="flex items-center space-x-2 flex-grow">
+                      <input
+                        type="text"
+                        value={envVar.key}
+                        onChange={(e) => handleEnvVarChange(index, 'key', e.target.value)}
+                        className="appearance-none border h-12 rounded py-2 px-3 text-[#364052] w-1/2 form-input"
+                        placeholder={t('server.key')}
+                      />
+                      <span className="flex items-center text-[#364052]">:</span>
+                      <input
+                        type="text"
+                        value={envVar.value}
+                        onChange={(e) => handleEnvVarChange(index, 'value', e.target.value)}
+                        className="appearance-none border h-12 rounded py-2 px-3 text-[#364052] w-1/2 form-input"
+                        placeholder={t('server.value')}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeEnvVar(index)}
+                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded text-sm flex items-center justify-center min-w-[56px] ml-2 btn-danger"
+                    >
+                      - {t('server.remove')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* URL输入框 - 仅对SSE和Streamable HTTP显示 */}
+              <div className="mb-8">
+                <label className="block text-[#364052] text-sm font-bold mb-3" htmlFor="url">
+                  {t('server.url')}
+                </label>
+                <input
+                  type="url"
+                  name="url"
+                  id="url"
+                  value={formData.url}
+                  onChange={handleInputChange}
+                  className="appearance-none border h-12 rounded w-full py-2 px-3 text-[#364052] form-input"
+                  placeholder={serverType === 'sse' ? "e.g.: http://localhost:3000/sse" : "e.g.: http://localhost:3000/mcp"}
+                  required={serverType === 'sse' || serverType === 'streamable-http'}
+                />
+              </div>
+    
+              {/* 自定义请求头 - 仅对SSE和Streamable HTTP显示 */}
+              <div className="mb-8">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-[#364052] text-sm font-bold">
+                    {t('server.headers')}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addHeaderVar}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded text-sm flex items-center btn-primary"
+                  >
+                    + {t('server.add')}
+                  </button>
+                </div>
+                {headerVars.map((headerVar, index) => (
+                  <div key={index} className="flex items-center mb-2">
+                    <div className="flex items-center space-x-2 flex-grow">
+                      <input
+                        type="text"
+                        value={headerVar.key}
+                        onChange={(e) => handleHeaderVarChange(index, 'key', e.target.value)}
+                        className="appearance-none border h-12 rounded py-2 px-3 text-[#364052] w-1/2 form-input"
+                        placeholder="Authorization"
+                      />
+                      <span className="flex items-center text-[#364052]">:</span>
+                      <input
+                        type="text"
+                        value={headerVar.value}
+                        onChange={(e) => handleHeaderVarChange(index, 'value', e.target.value)}
+                        className="appearance-none border h-12 rounded py-2 px-3 text-[#364052] w-1/2 form-input"
+                        placeholder="Bearer token..."
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeHeaderVar(index)}
+                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-2 rounded text-sm flex items-center justify-center min-w-[56px] ml-2 btn-danger"
+                    >
+                      - {t('server.remove')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+    
+          {/* Request Options Configuration */}
+          {serverType !== 'openapi' && (
+            <div className="mb-8">
+              <button
+                type="button"
+                onClick={() => setIsRequestOptionsExpanded(!isRequestOptionsExpanded)}
+                className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              >
+                <span>{t('server.requestOptions')}</span>
+                <svg
+                  className={`w-5 h-5 transition-transform duration-200 ${
+                    isRequestOptionsExpanded ? 'rotate-180' : ''
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+    
+              {isRequestOptionsExpanded && (
+                <div className="border border-gray-200 rounded-b p-4 bg-gray-50 border-t-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[#364052] text-sm font-bold mb-3" htmlFor="timeout">
+                        {t('server.timeout')}
+                      </label>
+                      <input
+                        type="number"
+                        id="timeout"
+                        value={formData.options?.timeout || 60000}
+                        onChange={(e) => handleOptionsChange('timeout', parseInt(e.target.value) || 60000)}
+                        className="appearance-none border h-12 rounded w-full py-2 px-3 text-[#364052] form-input"
+                        placeholder="30000"
+                        min="1000"
+                        max="300000"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">{t('server.timeoutDescription')}</p>
+                    </div>
+    
+                    <div>
+                      <label className="block text-[#364052] text-sm font-bold mb-3" htmlFor="maxTotalTimeout">
+                        {t('server.maxTotalTimeout')}
+                      </label>
+                      <input
+                        type="number"
+                        id="maxTotalTimeout"
+                        value={formData.options?.maxTotalTimeout || ''}
+                        onChange={(e) => handleOptionsChange('maxTotalTimeout', e.target.value ? parseInt(e.target.value) : undefined)}
+                        className="appearance-none border h-12 rounded w-full py-2 px-3 text-[#364052] form-input"
+                        placeholder="Optional"
+                        min="1000"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">{t('server.maxTotalTimeoutDescription')}</p>
+                    </div>
+                  </div>
+    
+                  <div className="mt-3">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.options?.resetTimeoutOnProgress || false}
+                        onChange={(e) => handleOptionsChange('resetTimeoutOnProgress', e.target.checked)}
+                        className="mr-2"
+                      />
+                      <span className="text-[#364052] text-sm">{t('server.resetTimeoutOnProgress')}</span>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1 ml-6">
+                      {t('server.resetTimeoutOnProgressDescription')}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+    
+          {/* 底部留白，避免被固定按钮遮挡 */}
+          <div className="h-20"></div>
+        </form>
+      </div>
+    
+      {/* 固定在底部的按钮 */}
+      <div className="bg-white p-6 flex justify-end space-x-3 flex-shrink-0">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200"
+        >
+          {t('common.cancel')}
+        </button>
+        <button
+          type="submit"
+          onClick={handleSubmit}
+          className="px-4 py-2 text-sm bg-[#302DF0] text-white rounded-lg hover:bg-blue-700 transition-all duration-200"
+        >
+          {isEdit ? t('common.save') : t('server.add')}
+        </button>
+      </div>
     </div>
   )
 }

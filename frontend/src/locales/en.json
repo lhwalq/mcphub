@@ -71,6 +71,7 @@
   },
   "server": {
     "addServer": "Add Server",
+    "editServer": "Update Server",
     "add": "Add",
     "edit": "Edit",
     "delete": "Delete",
@@ -79,6 +80,7 @@
     "status": "Status",
     "tools": "Tools",
     "name": "Server Name",
+    "introduction": "Server Introduction",
     "url": "Server URL",
     "apiKey": "API Key",
     "save": "Save",
