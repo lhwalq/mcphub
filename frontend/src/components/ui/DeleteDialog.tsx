@@ -28,13 +28,13 @@ const DeleteDialog = ({ isOpen, onClose, onConfirm, serverName, isGroup = false 
           <div className="flex justify-end space-x-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 btn-secondary"
+              className="px-4 py-1 text-sm text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-300 rounded-md transition-colors duration-200"
             >
               {t('common.cancel')}
             </button>
             <button
               onClick={onConfirm}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 btn-danger"
+              className="px-4 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200"
             >
               {t('common.delete')}
             </button>
