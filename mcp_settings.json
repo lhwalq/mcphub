@@ -18,7 +18,12 @@
       "args": [
         "@playwright/mcp@latest",
         "--headless"
-      ]
+      ],
+      "tools": {
+        "412412-browser_close": {
+          "enabled": true
+        }
+      }
     },
     "4234234": {
       "type": "stdio",

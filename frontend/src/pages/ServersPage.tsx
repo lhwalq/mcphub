@@ -214,22 +214,50 @@ const ServersPage: React.FC = () => {
             isDrawerAnimating ? 'translate-x-0' : 'translate-x-full'
           }`}>
             <div className="flex flex-col h-full">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">{selectedServer.name}</h2>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {selectedServer.tools?.length || 0} {t('server.tools')}
-                  </p>
+              {/* Header - 新的布局设计 */}
+              <div className="p-6 bg-[#F5F7FA] rounded-tl-lg">
+                <div className="flex items-start justify-between mb-5">
+                  <div className="flex items-start space-x-4">
+                    {/* 服务器图标 - 80px*80px 带圆角 */}
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={selectedServer.icon && selectedServer.icon.startsWith('data:image/') ? selectedServer.icon : "/assets/mcp_icon.svg"} 
+                        className="w-20 h-20 rounded-lg object-cover" 
+                        alt="server icon" 
+                      />
+                    </div>
+                    
+                    {/* 图标右边的内容：名字在上，工具数量在下 */}
+                    <div className="flex-1 flex flex-col justify-between h-20">
+                      <h2 className="text-[24px] font-semibold text-[#131414]">{selectedServer.name}</h2>
+                      <div className="flex items-center space-x-1">
+                        <img src="/assets/tools.svg" className="w-3 h-3" alt="tools" />
+                        <p className="text-[12px] text-[#676F83]">
+                          {selectedServer.tools?.length || 0} {t('server.tools')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 关闭按钮 */}
+                  <button
+                    onClick={handleCloseDrawer}
+                    className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
-                <button
-                  onClick={handleCloseDrawer}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                
+                {/* 图标下面显示简介 - 只有当简介存在且不为空时才显示 */}
+                {selectedServer.description && selectedServer.description.trim() && (
+                  <div className="max-h-20 overflow-y-auto">
+                    <p className="text-sm text-[#364052] leading-relaxed">
+                      {selectedServer.description}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Tools List */}

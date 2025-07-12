@@ -258,7 +258,7 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onClick }: ServerCardP
         <div className="mt-auto flex items-center text-sm">
           <div className="flex items-center space-x-1">
             <img src="/assets/tools.svg" className="w-3 h-3" alt="tools" />
-            <span className="text-[#676F83] text-[12px]">{server.tools?.length || 0} tools</span>
+            <span className="text-[#676F83] text-[12px]">{server.tools?.length || 0} {t('server.tools')}</span>
             <div className="flex items-center space-x-1 ml-2">
               <div className={`w-2 h-2 rounded-full ${
                 server.status === 'connected' ? 'bg-green-500' : 
