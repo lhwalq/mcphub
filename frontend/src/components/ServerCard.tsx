@@ -158,7 +158,7 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onClick }: ServerCardP
           <div className="flex items-center space-x-3 flex-1 min-w-0">
             <img 
               src={server.icon && server.icon.startsWith('data:image/') ? server.icon : "/assets/mcp_icon.svg"} 
-              className="w-10 h-10 flex-shrink-0" 
+              className="w-10 h-10 flex-shrink-0 rounded-lg" 
               alt="server" 
             />
             <div className="min-w-0 flex-1">

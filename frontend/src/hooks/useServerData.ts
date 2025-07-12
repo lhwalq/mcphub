@@ -226,6 +226,7 @@ export const useServerData = () => {
           description: server.description,
           tools: server.tools || [],
           config: serverConfig,
+          icon: server.icon,
         };
       } else {
         console.error('Failed to get server config from settings:', settingsData);

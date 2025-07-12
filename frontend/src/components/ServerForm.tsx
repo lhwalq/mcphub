@@ -33,6 +33,7 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
     url: (initialData && initialData.config && initialData.config.url) || '',
     command: (initialData && initialData.config && initialData.config.command) || '',
     description: (initialData && initialData.description) || '',
+    icon: (initialData && initialData.icon) || '',
     arguments:
       initialData && initialData.config && initialData.config.args
         ? Array.isArray(initialData.config.args)
@@ -97,6 +98,36 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData({ ...formData, [name]: value })
+  }
+
+  // 添加图标处理函数
+  const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      // 检查文件大小（60KB = 60 * 1024 bytes）
+      if (file.size > 70 * 1024) {
+        setError(t('server.iconSizeError', { maxSize: '70KB' }))
+        return
+      }
+  
+      const reader = new FileReader()
+      reader.onload = () => {
+        const img = new Image()
+        img.onload = () => {
+          // 检查图片尺寸
+          if (img.width > 512 || img.height > 512) {
+            setError(t('server.iconDimensionError', { maxDimension: '512x512' }))
+            return
+          }
+          
+          // 通过所有验证，设置图标
+          setFormData(prev => ({ ...prev, icon: reader.result as string }))
+          setError(null) // 清除之前的错误
+        }
+        img.src = reader.result as string
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   // Transform space-separated arguments string into array
@@ -204,6 +235,7 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
         config: {
           type: serverType, // Always include the type
           description: formData.description,
+          icon: formData.icon,
           ...(serverType === 'openapi'
             ? {
               openapi: (() => {
@@ -294,6 +326,32 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
         )}
     
         <form onSubmit={handleSubmit}>
+          {/* 图标上传区域 - 简洁版 */}
+          <div className="mb-6">
+            <div 
+              className="w-[100px] h-[100px] flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
+              onClick={() => document.getElementById('icon-upload')?.click()}
+            >
+              {formData.icon ? (
+                <img src={formData.icon} alt="" className="w-[100px] h-[100px] rounded-lg object-cover bg-white" />
+              ) : (
+                <div className="w-[100px] h-[100px] text-gray-400 text-center border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
+                  <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <div className="text-xs">{t('server.iconPlaceholder')}</div>
+                </div>
+              )}
+            </div>
+            <input
+              id="icon-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleIconChange}
+              className="hidden"
+            />
+          </div>
+
           {/* 服务器类型 - 独立按钮样式 */}
           <div className="mb-6">
             <label className="block text-[#364052] text-sm mb-6">{t('server.type')}</label>

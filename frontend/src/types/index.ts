@@ -193,6 +193,7 @@ export interface ServerFormData {
     openIdConnectClientSecret?: string;
     openIdConnectToken?: string;
   };
+  icon?: string
 }
 
 // Group form data types

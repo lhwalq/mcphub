@@ -62,9 +62,14 @@ const EditServerForm = ({ server, onEdit, onCancel }: EditServerFormProps) => {
         return
       }
 
-      // 关闭模态框并通知父组件
-      handleClose()
-      onEdit()
+      // 先启动关闭动画
+      setIsAnimating(false)
+      // 等待动画完成后再关闭模态框并通知父组件
+      setTimeout(() => {
+        setModalVisible(false)
+        onCancel()
+        onEdit() // 在动画完成后再调用
+      }, 300) // 与动画持续时间相同
     } catch (err) {
       console.error('Error updating server:', err)
       setError(err instanceof Error ? err.message : String(err))

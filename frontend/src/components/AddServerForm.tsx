@@ -66,9 +66,9 @@ const AddServerForm = ({ onAdd }: AddServerFormProps) => {
         },
         body: JSON.stringify(payload),
       })
-
+  
       const result = await response.json()
-
+  
       if (!response.ok) {
         // Use specific error message from the response if available
         if (result && result.message) {
@@ -82,12 +82,13 @@ const AddServerForm = ({ onAdd }: AddServerFormProps) => {
         }
         return
       }
-
-      setModalVisible(false)
+  
+      // 使用动画关闭模态框，而不是直接设置 setModalVisible(false)
+      toggleModal()
       onAdd()
     } catch (err) {
       console.error('Error adding server:', err)
-
+  
       // Use friendly error messages based on error type
       if (!navigator.onLine) {
         setError(t('errors.network'))
