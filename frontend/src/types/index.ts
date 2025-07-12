@@ -157,6 +157,7 @@ export interface ServerFormData {
   url: string;
   command: string;
   arguments: string;
+  description: string;
   args?: string[]; // Added explicit args field
   type?: 'stdio' | 'sse' | 'streamable-http' | 'openapi'; // Added type field with openapi support
   env: EnvVar[];

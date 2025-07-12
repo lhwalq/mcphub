@@ -32,6 +32,7 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
     name: (initialData && initialData.name) || '',
     url: (initialData && initialData.config && initialData.config.url) || '',
     command: (initialData && initialData.config && initialData.config.command) || '',
+    description: (initialData && initialData.description) || '',
     arguments:
       initialData && initialData.config && initialData.config.args
         ? Array.isArray(initialData.config.args)
@@ -202,6 +203,7 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
         name: formData.name,
         config: {
           type: serverType, // Always include the type
+          description: formData.description,
           ...(serverType === 'openapi'
             ? {
               openapi: (() => {
@@ -343,6 +345,8 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
               <input
                 type="text"
                 name="description"
+                value={formData.description}
+                onChange={handleInputChange}
                 id="description"
                 className="appearance-none border rounded h-12 w-full py-2 px-3 text-[#364052] form-input"
                 placeholder="e.g.: time mcp introduction"

@@ -223,6 +223,7 @@ export const useServerData = () => {
         return {
           name: server.name,
           status: server.status,
+          description: server.description,
           tools: server.tools || [],
           config: serverConfig,
         };

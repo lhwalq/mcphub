@@ -18,6 +18,7 @@
     },
     "412412": {
       "type": "stdio",
+      "description": "不错",
       "command": "npx",
       "args": [
         "@playwright/mcp@latest",
@@ -67,8 +68,8 @@
       "enabled": false
     },
     "slack": {
+      "type": "stdio",
       "command": "npx",
-      "description": "Slack MCP 服务",
       "args": [
         "-y",
         "@modelcontextprotocol/server-slack"
@@ -76,13 +77,12 @@
       "env": {
         "SLACK_BOT_TOKEN": "your-bot-token",
         "SLACK_TEAM_ID": "your-team-id"
-      },
-      "enabled": true
+      }
     },
     "text": {
       "type": "stdio",
+      "description": "内容",
       "command": "npx",
-      "description": "Text MCP 服务",
       "args": [
         "@playwright/mcp@latest",
         "--headless"
