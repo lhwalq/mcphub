@@ -135,6 +135,7 @@ export interface Server {
   config?: ServerConfig;
   enabled?: boolean;
   description?: string; // 服务器描述
+  icon?: string; // 服务器图标
 }
 
 // Group types

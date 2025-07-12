@@ -156,9 +156,11 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onClick }: ServerCardP
         {/* Header with title and menu */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center space-x-3 flex-1 min-w-0">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <img src="/assets/mcp.svg" className="w-510 h-5" alt="server" />
-            </div>
+            <img 
+              src={server.icon && server.icon.startsWith('data:image/') ? server.icon : "/assets/mcp_icon.svg"} 
+              className="w-10 h-10 flex-shrink-0" 
+              alt="server" 
+            />
             <div className="min-w-0 flex-1">
               <h3 className="font-semibold text-[#111828] text-[16px] truncate">{server.name}</h3>
               {server.error && (

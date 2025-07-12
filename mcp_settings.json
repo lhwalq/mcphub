@@ -116,6 +116,15 @@
         "@playwright/mcp@latest",
         "--headless"
       ]
+    },
+    "你好": {
+      "type": "stdio",
+      "description": "你好",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--headless"
+      ]
     }
   },
   "users": [

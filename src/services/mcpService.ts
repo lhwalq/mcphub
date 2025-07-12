@@ -502,6 +502,7 @@ export const getServersInfo = (): Omit<ServerInfo, 'client' | 'transport'>[] => 
       createTime,
       enabled,
       description: serverConfig?.description || '', // 从配置中读取 description
+      icon: serverConfig?.icon || '', // 从配置中读取 icon
     };
   });
   infos.sort((a, b) => {
