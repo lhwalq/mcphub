@@ -148,19 +148,19 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onClick }: ServerCardP
   return (
     <>
       <div 
-        className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-all duration-200 relative ${
-          server.enabled === false ? 'opacity-60' : ''
+        className={`h-[177px] rounded-[8px] bg-white border-[0.5px] border-[#EFEFF0] shadow-[0px_0px_4px_0px_#F5F5F6] p-4 cursor-pointer flex flex-col ${
+          server.enabled === false ? 'opacity-60' : 'opacity-100'
         }`}
         onClick={handleCardClick}
       >
         {/* Header with title and menu */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-2 flex-1 min-w-0">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <img src="/assets/mcp.svg" className="w-6 h-6" alt="server" />
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center space-x-3 flex-1 min-w-0">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <img src="/assets/mcp.svg" className="w-510 h-5" alt="server" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-gray-900 truncate">{server.name}</h3>
+              <h3 className="font-semibold text-[#111828] text-[16px] truncate">{server.name}</h3>
               {server.error && (
                 <div className="relative">
                   <div
@@ -245,28 +245,27 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onClick }: ServerCardP
           </div>
         </div>
 
-        {/* Description */}
+        {/* Description - with fixed height and scrollbar */}
         {server.description && (
-          <div className="mb-4 text-sm text-gray-500 line-clamp-2">{server.description}</div>
+          <div className="h-[72px] overflow-y-auto text-[12px] text-[#676F83] mb-3 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+            {server.description}
+          </div>
         )}
 
-        {/* Bottom info */}
-        <div className="flex items-center justify-between text-sm">
+        {/* Bottom info - fixed at bottom */}
+        <div className="mt-auto flex items-center text-sm">
           <div className="flex items-center space-x-1">
-            <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-            </svg>
-            <span className="text-gray-600">{server.tools?.length || 0} tools</span>
-          </div>
-          
-          <div className="flex items-center space-x-1">
-            <div className={`w-2 h-2 rounded-full ${
-              server.status === 'connected' ? 'bg-green-500' : 
-              server.status === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'
-            }`} />
-            <span className={getStatusColor(server.status)}>
-              {getStatusText(server.status)}
-            </span>
+            <img src="/assets/tools.svg" className="w-3 h-3" alt="tools" />
+            <span className="text-[#676F83] text-[12px]">{server.tools?.length || 0} tools</span>
+            <div className="flex items-center space-x-1 ml-2">
+              <div className={`w-2 h-2 rounded-full ${
+                server.status === 'connected' ? 'bg-green-500' : 
+                server.status === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'
+              }`} />
+              <span className={`${getStatusColor(server.status)} text-[12px]`}>
+                {getStatusText(server.status)}
+              </span>
+            </div>
           </div>
         </div>
       </div>
