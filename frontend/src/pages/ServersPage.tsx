@@ -75,7 +75,8 @@ const ServersPage: React.FC = () => {
 
   return (
     <div className="relative">
-      <div className="flex justify-between items-center mb-8">
+      {/* 固定顶部区域 */}
+      <div className="flex justify-between items-center mb-3">
         <h1 className="text-[28px] font-bold text-[#3D3D3D]">{t('pages.servers.title')}</h1>
         <div className="flex gap-2">
           <AddServerForm onAdd={handleServerAdd} />
@@ -99,55 +100,66 @@ const ServersPage: React.FC = () => {
         </div>
       </div>
 
-      {error && (
-        <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm error-box">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-red-600 text-lg font-medium">{t('app.error')}</h3>
-              <p className="text-gray-600 mt-1">{error}</p>
+      {/* 可滚动内容区域 */}
+      <div className="max-h-[calc(100vh-80px)] pb-5 pt-5 overflow-y-auto" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            .scrollable-content::-webkit-scrollbar {
+              display: none;
+            }
+          `
+        }} />
+        
+        {error && (
+          <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm error-box">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-red-600 text-lg font-medium">{t('app.error')}</h3>
+                <p className="text-gray-600 mt-1">{error}</p>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="ml-4 text-gray-500 hover:text-gray-700 transition-colors duration-200 btn-secondary"
+                aria-label={t('app.closeButton')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 011.414 0L10 8.586l4.293-4.293a1 1 111.414 1.414L11.414 10l4.293 4.293a1 1 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 01-1.414-1.414L8.586 10 4.293 5.707a1 1 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
             </div>
-            <button
-              onClick={() => setError(null)}
-              className="ml-4 text-gray-500 hover:text-gray-700 transition-colors duration-200 btn-secondary"
-              aria-label={t('app.closeButton')}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 011.414 0L10 8.586l4.293-4.293a1 1 111.414 1.414L11.414 10l4.293 4.293a1 1 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 01-1.414-1.414L8.586 10 4.293 5.707a1 1 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {isLoading ? (
-        <div className="bg-white shadow rounded-lg p-6 flex items-center justify-center loading-container">
-          <div className="flex flex-col items-center">
-            <svg className="animate-spin h-10 w-10 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p className="text-gray-600">{t('app.loading')}</p>
+        {isLoading ? (
+          <div className="bg-white shadow rounded-lg p-6 flex items-center justify-center loading-container">
+            <div className="flex flex-col items-center">
+              <svg className="animate-spin h-10 w-10 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p className="text-gray-600">{t('app.loading')}</p>
+            </div>
           </div>
-        </div>
-      ) : servers.length === 0 ? (
-        <div className="bg-white shadow rounded-lg p-6 empty-state">
-          <p className="text-gray-600">{t('app.noServers')}</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {servers.map((server, index) => (
-            <ServerCard
-              key={index}
-              server={server}
-              onRemove={handleServerRemove}
-              onEdit={handleEditClick}
-              onToggle={handleServerToggle}
-              onRefresh={triggerRefresh}
-              onClick={handleCardClick}
-            />
-          ))}
-        </div>
-      )}
+        ) : servers.length === 0 ? (
+          <div className="bg-white shadow rounded-lg p-6 empty-state">
+            <p className="text-gray-600">{t('app.noServers')}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {servers.map((server, index) => (
+              <ServerCard
+                key={index}
+                server={server}
+                onRemove={handleServerRemove}
+                onEdit={handleEditClick}
+                onToggle={handleServerToggle}
+                onRefresh={triggerRefresh}
+                onClick={handleCardClick}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {editingServer && (
         <EditServerForm
