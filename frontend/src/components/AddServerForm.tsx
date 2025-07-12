@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import ServerForm from './ServerForm'
 import { getApiUrl } from '../utils/runtime'
@@ -15,9 +15,32 @@ const AddServerForm = ({ onAdd }: AddServerFormProps) => {
   const [confirmationVisible, setConfirmationVisible] = useState(false)
   const [pendingPayload, setPendingPayload] = useState<any>(null)
   const [detectedVariables, setDetectedVariables] = useState<string[]>([])
+  const [isAnimating, setIsAnimating] = useState(false)
+
+  // 监听 modalVisible 变化，控制动画
+  useEffect(() => {
+    if (modalVisible) {
+      // 当模态框显示时，延迟一帧后启动动画
+      requestAnimationFrame(() => {
+        setIsAnimating(true)
+      })
+    } else {
+      setIsAnimating(false)
+    }
+  }, [modalVisible])
 
   const toggleModal = () => {
-    setModalVisible(!modalVisible)
+    if (modalVisible) {
+      // 关闭模态框时，先执行动画
+      setIsAnimating(false)
+      // 等待动画完成后再隐藏模态框
+      setTimeout(() => {
+        setModalVisible(false)
+      }, 300) // 与动画持续时间相同
+    } else {
+      // 打开模态框
+      setModalVisible(true)
+    }
     setError(null) // Clear any previous errors when toggling modal
     setConfirmationVisible(false) // Close confirmation dialog
     setPendingPayload(null) // Clear pending payload
@@ -110,13 +133,20 @@ const AddServerForm = ({ onAdd }: AddServerFormProps) => {
       </button>
 
       {modalVisible && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <ServerForm
-            onSubmit={handleSubmit}
-            onCancel={toggleModal}
-            modalTitle={t('server.addServer')}
-            formError={error}
-          />
+        <div className="fixed inset-0 bg-black/30 z-50 flex">
+          <div className="w-1/3"
+            onClick={(e) => {
+                e.stopPropagation()
+                toggleModal()
+              }}></div>
+          <div className={`w-2/3 bg-white overflow-y-auto rounded-l-lg transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-0' : 'translate-x-full'}`}>
+            <ServerForm
+              onSubmit={handleSubmit}
+              onCancel={toggleModal}
+              modalTitle={t('server.addServer')}
+              formError={error}
+            />
+          </div>
         </div>
       )}
 

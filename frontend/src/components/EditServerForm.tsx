@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Server } from '@/types'
 import { getApiUrl } from '../utils/runtime'
@@ -13,6 +13,25 @@ interface EditServerFormProps {
 const EditServerForm = ({ server, onEdit, onCancel }: EditServerFormProps) => {
   const { t } = useTranslation()
   const [error, setError] = useState<string | null>(null)
+  const [modalVisible, setModalVisible] = useState(true) 
+  const [isAnimating, setIsAnimating] = useState(false)
+
+  // 组件挂载时启动动画
+  useEffect(() => {
+    // 使用 requestAnimationFrame 确保 DOM 已更新
+    requestAnimationFrame(() => {
+      setIsAnimating(true)
+    })
+  }, [])
+
+  const handleClose = () => {
+    setIsAnimating(false)
+    // 等待动画完成后再关闭模态框
+    setTimeout(() => {
+      setModalVisible(false)
+      onCancel()
+    }, 300) // 与动画持续时间相同
+  }
 
   const handleSubmit = async (payload: any) => {
     try {
@@ -43,33 +62,37 @@ const EditServerForm = ({ server, onEdit, onCancel }: EditServerFormProps) => {
         return
       }
 
+      // 关闭模态框并通知父组件
+      handleClose()
       onEdit()
     } catch (err) {
       console.error('Error updating server:', err)
-
-      // Use friendly error messages based on error type
-      if (!navigator.onLine) {
-        setError(t('errors.network'))
-      } else if (err instanceof TypeError && (
-        err.message.includes('NetworkError') ||
-        err.message.includes('Failed to fetch')
-      )) {
-        setError(t('errors.serverConnection'))
-      } else {
-        setError(t('errors.serverUpdate', { serverName: server.name }))
-      }
+      setError(err instanceof Error ? err.message : String(err))
     }
   }
 
+  // 如果modal不可见，不渲染任何内容
+  if (!modalVisible) {
+    return null
+  }
+
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <ServerForm
-        onSubmit={handleSubmit}
-        onCancel={onCancel}
-        initialData={server}
-        modalTitle={t('server.editTitle', { serverName: server.name })}
-        formError={error}
-      />
+    <div className="fixed inset-0 bg-black/30 z-50 flex">
+      <div 
+        className="w-1/3"
+        onClick={handleClose}
+      ></div>
+      <div 
+        className={`w-2/3 bg-white overflow-y-auto rounded-l-lg transform transition-transform duration-300 ease-in-out ${isAnimating ? 'translate-x-0' : 'translate-x-full'}`}
+      >
+        <ServerForm
+          onSubmit={handleSubmit}
+          onCancel={handleClose}
+          initialData={server}
+          modalTitle={t('server.editServer')}
+          formError={error}
+        />
+      </div>
     </div>
   )
 }
