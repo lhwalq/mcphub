@@ -393,7 +393,6 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
                 className="appearance-none border h-12 rounded w-full py-2 px-3 text-[#364052] form-input"
                 placeholder="e.g.: time-mcp"
                 required
-                disabled={isEdit}
               />
             </div>
             <div>

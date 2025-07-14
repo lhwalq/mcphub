@@ -37,13 +37,38 @@ const EditServerForm = ({ server, onEdit, onCancel }: EditServerFormProps) => {
     try {
       setError(null)
       const token = localStorage.getItem('mcphub_token');
+
+      // 如果名称发生变化，先检查是否存在重名
+      if (payload.name !== server.name) {
+        const checkResponse = await fetch(getApiUrl('/servers'), {
+          method: 'GET',
+          headers: {
+            'x-auth-token': token || ''
+          }
+        });
+
+        if (checkResponse.ok) {
+          const checkResult = await checkResponse.json();
+          const existingServer = checkResult.data?.find((s: any) => s.name === payload.name);
+          
+          if (existingServer) {
+            setError(t('server.alreadyExists', { serverName: payload.name }));
+            return;
+          }
+        }
+      }
+
+      // 如果名称没有变化或者检查通过，继续更新
       const response = await fetch(getApiUrl(`/servers/${server.name}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'x-auth-token': token || ''
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          config: payload.config,
+          newName: payload.name !== server.name ? payload.name : undefined
+        }),
       })
 
       const result = await response.json()

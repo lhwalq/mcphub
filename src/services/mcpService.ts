@@ -615,22 +615,35 @@ export const addOrUpdateServer = async (
   name: string,
   config: ServerConfig,
   allowOverride: boolean = false,
+  oldName?: string,
 ): Promise<{ success: boolean; message?: string }> => {
   try {
     const settings = loadSettings();
     const exists = !!settings.mcpServers[name];
 
-    if (exists && !allowOverride) {
+    // 如果是重命名的情况，检查新名称是否已存在（排除与旧名称相同的情况）
+    if (exists && oldName !== name && !allowOverride) {
       return { success: false, message: 'Server name already exists' };
     }
 
-    // If overriding and this is a DXT server (stdio type with file paths),
-    // we might want to clean up old files in the future
-    if (exists && config.type === 'stdio') {
-      // Close existing server connections
-      closeServer(name);
-      // Remove from server infos
-      serverInfos = serverInfos.filter((serverInfo) => serverInfo.name !== name);
+    // 如果是重命名，先删除旧的配置
+    if (oldName && oldName !== name) {
+      delete settings.mcpServers[oldName];
+    }
+
+    // 如果是更新现有服务器
+    if ((exists || oldName) && (config.type === 'stdio' || oldName)) {
+      // 关闭现有的服务器连接
+      if (oldName) {
+        closeServer(oldName);
+      }
+      if (name !== oldName) {
+        closeServer(name);
+      }
+      // 从 serverInfos 中移除
+      serverInfos = serverInfos.filter((serverInfo) => 
+        serverInfo.name !== name && serverInfo.name !== oldName
+      );
     }
 
     settings.mcpServers[name] = config;

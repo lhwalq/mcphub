@@ -183,7 +183,7 @@ export const deleteServer = async (req: Request, res: Response): Promise<void> =
 export const updateServer = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name } = req.params;
-    const { config } = req.body;
+    const { config, newName } = req.body;
     if (!name) {
       res.status(400).json({
         success: false,
@@ -264,7 +264,9 @@ export const updateServer = async (req: Request, res: Response): Promise<void> =
       config.keepAliveInterval = 60000; // Default 60 seconds for SSE servers
     }
 
-    const result = await addOrUpdateServer(name, config, true); // Allow override for updates
+    // 使用新的服务器名称（如果提供）或原始名称
+    const targetName = newName || name;
+    const result = await addOrUpdateServer(targetName, config, true, name); // 传递旧名称用于重命名
     if (result.success) {
       notifyToolChanged();
       res.json({
