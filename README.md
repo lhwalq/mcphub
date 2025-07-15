@@ -70,7 +70,7 @@ docker run -p 3000:3000 samanhappy/mcphub
 
 Open `http://localhost:3000` and log in with your credentials.
 
-> **Note**: Default credentials are `admin` / `admin123`.
+> **Note**: Default credentials are `anderson.lin@deepparser.ai` / `deepparser.ai`.
 
 **Dashboard Overview**:
 

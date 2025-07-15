@@ -70,7 +70,7 @@ docker run -p 3000:3000 samanhappy/mcphub
 
 打开 `http://localhost:3000`，使用您的账号登录。
 
-> **提示**：默认用户名/密码为 `admin` / `admin123`。
+> **提示**：默认用户名/密码为 `anderson.lin@deepparser.ai` / `deepparser.ai`。
 
 **控制台功能**：
 

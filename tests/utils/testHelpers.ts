@@ -75,8 +75,8 @@ export const TestData = {
   }),
 
   adminUser: (overrides: Partial<TestUser> = {}): TestUser => ({
-    username: 'admin',
-    password: 'admin123',
+    username: 'anderson.lin@deepparser.ai',
+    password: 'deepparser.ai',
     isAdmin: true,
     ...overrides,
   }),

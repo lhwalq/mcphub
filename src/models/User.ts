@@ -92,8 +92,8 @@ export const initializeDefaultUser = async (): Promise<void> => {
 
   if (users.length === 0) {
     await createUser({
-      username: 'admin',
-      password: 'admin123',
+      username: 'anderson.lin@deepparser.ai',
+      password: 'deepparser.ai',
       isAdmin: true,
     });
     console.log('Default admin user created');

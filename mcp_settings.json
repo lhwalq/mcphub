@@ -162,8 +162,8 @@
   },
   "users": [
     {
-      "username": "admin",
-      "password": "$2b$10$Vt7krIvjNgyN67LXqly0uOcTpN0LI55cYRbcKC71pUDAP0nJ7RPa.",
+      "username": "anderson.lin@deepparser.ai",
+      "password": "$2a$10$rvYkUn2C1gLQxaR3RCsxYuBhxAVcOFlEdUJrq1yK3QB6VOknZnvSi",
       "isAdmin": true
     }
   ]
